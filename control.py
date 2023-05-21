@@ -2,147 +2,150 @@ import mysql.connector
 from PyQt5 import QtWidgets, uic
 from reportlab.pdfgen import canvas
 
-numero_id=0
-banco=mysql.connector.connect(port='3308',host='localhost',user='root',passwd='',database='cadastro_produtos')
+id_number=0
+db=mysql.connector.connect(port='3308',host='localhost',user='root',passwd='',database='product_registration')
+cursor=db.cursor()
+cursor.execute('CREATE TABLE IF NOT EXISTS products (id INT NOT NULL AUTO_INCREMENT, quantity INT, name VARCHAR(50), price DOUBLE, category VARCHAR(20), PRIMARY KEY(id))')
 
-def gerar_pdf():
-    cursor = banco.cursor()
-    comando_SQL = "SELECT * FROM produtos"
-    cursor.execute(comando_SQL)
-    dados_lidos = cursor.fetchall()
+
+def generate_pdf():
+    cursor = db.cursor()
+    SQL_command = "SELECT * FROM products"
+    cursor.execute(SQL_command)
+    data_read = cursor.fetchall()
     y = 0
-    pdf = canvas.Canvas("cadastro_produtos.pdf")
+    pdf = canvas.Canvas("products_list.pdf")
     pdf.setFont("Times-Bold", 25)
-    pdf.drawString(200,800, "Produtos cadastrados:")
+    pdf.drawString(200,800, "Registered Products:")
     pdf.setFont("Times-Bold", 18)
 
     pdf.drawString(10,750, "ID")
-    pdf.drawString(110,750, "CODIGO")
-    pdf.drawString(210,750, "PRODUTO")
-    pdf.drawString(310,750, "PREÇO")
-    pdf.drawString(410,750, "CATEGORIA")
+    pdf.drawString(110,750, "QUANTITY")
+    pdf.drawString(210,750, "PRODUCT")
+    pdf.drawString(310,750, "PRICE")
+    pdf.drawString(410,750, "CATEGORY")
 
-    for i in range(0, len(dados_lidos)):
+    for i in range(0, len(data_read)):
         y = y + 50
-        pdf.drawString(10,750 - y, str(dados_lidos[i][0]))
-        pdf.drawString(110,750 - y, str(dados_lidos[i][1]))
-        pdf.drawString(210,750 - y, str(dados_lidos[i][2]))
-        pdf.drawString(310,750 - y, str(dados_lidos[i][3]))
-        pdf.drawString(410,750 - y, str(dados_lidos[i][4]))
+        pdf.drawString(10,750 - y, str(data_read[i][0]))
+        pdf.drawString(110,750 - y, str(data_read[i][1]))
+        pdf.drawString(210,750 - y, str(data_read[i][2]))
+        pdf.drawString(310,750 - y, str(data_read[i][3]))
+        pdf.drawString(410,750 - y, str(data_read[i][4]))
 
     pdf.save()
-    print("PDF FOI GERADO COM SUCESSO!")
+    print("PDF GENERATED WITH SUCESS!")
 
-def funcao_principal():
-    linha1 = formulario.lineEdit.text()
-    linha2 = formulario.lineEdit_2.text()
-    linha3 = formulario.lineEdit_3.text()
+def main_func():
+    line1 = form.lineEdit.text()
+    line2 = form.lineEdit_2.text()
+    line3 = form.lineEdit_3.text()
     
-    categoria = ""
-    if formulario.radioButton.isChecked() :
-        print("Categoria Alimentos selecionada")
-        categoria ="Alimentos"
-    elif formulario.radioButton_2.isChecked() :
-        print("Categoria Eletrônicos selecionada")
-        categoria ="Eletrônicos"
+    category = ""
+    if form.radioButton.isChecked() :
+        print("category Meat selected")
+        category ="Meat"
+    elif form.radioButton_2.isChecked() :
+        print("category Dairy selected")
+        category ="Dairy"
     else :
-        print("Categoria Cosmeticos selecionada")
-        categoria ="Cosmeticos"
+        print("category Other selected")
+        category ="Other"
 
-    print("Código:",linha1)
-    print("Descricao:",linha2)
-    print("Preco",linha3)
+    print("Quantity:",line1)
+    print("Name:",line2)
+    print("Price",line3)
 
-    cursor = banco.cursor() 
-    comando_SQL = "INSERT INTO produtos (codigo,descrição,preço,categoria) VALUES (%s,%s,%s,%s)"
-    dados = (str(linha1),str(linha2),str(linha3),categoria)
-    cursor.execute(comando_SQL,dados)
-    banco.commit()
-    formulario.lineEdit.setText("")
-    formulario.lineEdit_2.setText("")
-    formulario.lineEdit_3.setText("")
+    cursor = db.cursor() 
+    SQL_command = "INSERT INTO products (quantity,name,price,category) VALUES (%s,%s,%s,%s)"
+    data = (str(line1),str(line2),str(line3),category)
+    cursor.execute(SQL_command,data)
+    db.commit()
+    form.lineEdit.setText("")
+    form.lineEdit_2.setText("")
+    form.lineEdit_3.setText("")
 
-def chama_segunda_tela():
-    segunda_tela.show()
+def call_second_screen():
+    second_screen.show()
 
-    cursor = banco.cursor() 
-    comando_SQL = "SELECT * FROM produtos"
-    cursor.execute(comando_SQL)
-    dados_lidos=cursor.fetchall()
+    cursor = db.cursor() 
+    SQL_command = "SELECT * FROM products"
+    cursor.execute(SQL_command)
+    data_read=cursor.fetchall()
 
-    segunda_tela.tableWidget.setRowCount(len(dados_lidos)) 
-    segunda_tela.tableWidget.setColumnCount(5)
+    second_screen.tableWidget.setRowCount(len(data_read)) 
+    second_screen.tableWidget.setColumnCount(5)
 
-    for i in range(0, len(dados_lidos)):
+    for i in range(0, len(data_read)):
         for j in range(0, 5):
-           segunda_tela.tableWidget.setItem(i,j,QtWidgets.QTableWidgetItem(str(dados_lidos[i][j]))) 
+           second_screen.tableWidget.setItem(i,j,QtWidgets.QTableWidgetItem(str(data_read[i][j]))) 
 
-def excluir_dados():
-    linha = segunda_tela.tableWidget.currentRow() 
-    segunda_tela.tableWidget.removeRow(linha)
+def delete_data():
+    line = second_screen.tableWidget.currentRow() 
+    second_screen.tableWidget.removeRow(line)
 
-    cursor = banco.cursor()
-    cursor.execute("SELECT id FROM produtos")
-    dados_lidos = cursor.fetchall()
-    valor_id = dados_lidos[linha][0]
-    cursor.execute("DELETE FROM produtos WHERE id="+ str(valor_id))
+    cursor = db.cursor()
+    cursor.execute("SELECT id FROM products")
+    data_read = cursor.fetchall()
+    id_value = data_read[line][0]
+    cursor.execute("DELETE FROM products WHERE id="+ str(id_value))
 
-def editar_dados():
-    global numero_id
+def editar_data():
+    global id_number
 
-    linha = segunda_tela.tableWidget.currentRow()
+    line = second_screen.tableWidget.currentRow()
     
-    cursor = banco.cursor()
-    cursor.execute("SELECT id FROM produtos")
-    dados_lidos = cursor.fetchall()
-    valor_id = dados_lidos[linha][0]
-    cursor.execute("SELECT * FROM produtos WHERE id="+ str(valor_id))
-    produto = cursor.fetchall()
-    tela_editar.show()
+    cursor = db.cursor()
+    cursor.execute("SELECT id FROM products")
+    data_read = cursor.fetchall()
+    id_value = data_read[line][0]
+    cursor.execute("SELECT * FROM products WHERE id="+ str(id_value))
+    product = cursor.fetchall()
+    edit_screen.show()
 
-    tela_editar.lineEdit.setText(str(produto[0][0]))
-    tela_editar.lineEdit_5.setText(str(produto[0][1]))
-    tela_editar.lineEdit_4.setText(str(produto[0][2]))
-    tela_editar.lineEdit_3.setText(str(produto[0][3]))
-    numero_id = valor_id
-def salvar_valor_editado():
-    global numero_id
+    edit_screen.lineEdit.setText(str(product[0][0]))
+    edit_screen.lineEdit_5.setText(str(product[0][1]))
+    edit_screen.lineEdit_4.setText(str(product[0][2]))
+    edit_screen.lineEdit_3.setText(str(product[0][3]))
+    id_number = id_value
+def save_edited_value():
+    global id_number
 
-    # ler dados do lineEdit
-    codigo = tela_editar.lineEdit_5.text()
-    descrição = tela_editar.lineEdit_4.text()
-    preço = tela_editar.lineEdit_3.text()
-    categoria = ""
-    if tela_editar.radioButton.isChecked() :
-        print("Categoria Eletrônicos selecionada")
-        categoria ="Eletrônicos"
-    elif tela_editar.radioButton_2.isChecked() :
-        print("Categoria Alimentos selecionada")
-        categoria ="Alimentos"
+    # ler data do lineEdit
+    quantity = edit_screen.lineEdit_5.text()
+    name = edit_screen.lineEdit_4.text()
+    price = edit_screen.lineEdit_3.text()
+    category = ""
+    if edit_screen.radioButton.isChecked() :
+        print("category Dairy selected")
+        category ="Dairy"
+    elif edit_screen.radioButton_2.isChecked() :
+        print("category Meat selected")
+        category ="Meat"
     else :
-        print("Categoria Cosmeticos selecionada")
-        categoria ="Cosmeticos"
+        print("category Other selected")
+        category ="Other"
    
-    # atualizar os dados no banco
-    cursor = banco.cursor()
-    cursor.execute("UPDATE produtos SET codigo = '{}', descrição = '{}', preço = '{}', categoria ='{}' WHERE id = {}".format(codigo,descrição,preço,categoria,numero_id))
-    banco.commit()
+    # atualizar os data no db
+    cursor = db.cursor()
+    cursor.execute("UPDATE products SET quantity = '{}', name = '{}', price = '{}', category ='{}' WHERE id = {}".format(quantity,name,price,category,id_number))
+    db.commit()
     #atualizar as janelas
-    tela_editar.close()
-    segunda_tela.close()
-    chama_segunda_tela()
+    edit_screen.close()
+    second_screen.close()
+    call_second_screen()
     
 
 app=QtWidgets.QApplication([])
-formulario=uic.loadUi("formulario.ui")
-segunda_tela=uic.loadUi("listar_dados.ui")
-tela_editar=uic.loadUi("menu_editar.ui")
-formulario.pushButton.clicked.connect(funcao_principal)
-formulario.pushButton_2.clicked.connect(chama_segunda_tela)
-segunda_tela.pushButton.clicked.connect(gerar_pdf)
-segunda_tela.pushButton_2.clicked.connect(excluir_dados)
-segunda_tela.pushButton_3.clicked.connect(editar_dados)
-tela_editar.pushButton.clicked.connect(salvar_valor_editado)
+form=uic.loadUi("form.ui")
+second_screen=uic.loadUi("list_data.ui")
+edit_screen=uic.loadUi("edit_menu.ui")
+form.pushButton.clicked.connect(main_func)
+form.pushButton_2.clicked.connect(call_second_screen)
+second_screen.pushButton.clicked.connect(generate_pdf)
+second_screen.pushButton_2.clicked.connect(delete_data)
+second_screen.pushButton_3.clicked.connect(editar_data)
+edit_screen.pushButton.clicked.connect(save_edited_value)
 
-formulario.show()
+form.show()
 app.exec()
